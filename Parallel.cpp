@@ -2,6 +2,9 @@
 #include "opencv2/highgui.hpp"
 #include <iostream>
 #include "aes.cpp"
+#include<omp.h>
+#include <chrono>
+using namespace std::chrono;
 using namespace cv;
 using namespace std;
 
@@ -15,16 +18,23 @@ void Decryption(Mat image);
 
 int main()
 {
-	Mat image = imread("C:\\Users\\Anirudh\\Desktop\\pdc_lab\\AES_pdc\\triall.png", IMREAD_ANYCOLOR);
+	//Mat image= imread("C:\\Users\\Anirudh\\Desktop\\pdc_lab\\AES_pdc\\triall.png",IMREAD_ANYCOLOR);
 	//Mat image = imread("encrypted1.jpeg", IMREAD_ANYCOLOR);
-	//imshow("Image", image);
+	Mat image = imread("trying.jpeg",IMREAD_ANYCOLOR);
+	imshow("Image", image);
 	//cout << (int)image.data;
 	//printf("IMG LOADED");
+	//cout << "Original\t"<<image.rowRange(0, 1) << "\n";
+	auto start =high_resolution_clock::now();
 	Encryption(image);
+	auto end = high_resolution_clock::now();
+	cout << "Time taken: " << (end - start).count()<<" micro seconds";
 	//Mat img=imread("encrypted1.jpeg",IMREAD_ANYCOLOR);
 	//imshow("Image", img);
 	//Decryption(image);
-	imshow("Image", image);
+	//Mat img = imread("encrypted2.png", IMREAD_ANYCOLOR);
+	//Decryption(img);
+	//imshow("Image", image);
 	waitKey(0);
 
 	//	char x;
@@ -47,30 +57,37 @@ void Encryption(Mat image)
 	int count = 0;
 	cout << "Rows:" << image.rows << "Cols: " << image.cols;
 	// Mat result(image.rows,image.cols,CV_8SC3);
-	imshow("Image", image);
+	//imshow("Image",image );
 	//long long l=0;
 	_InputArray* a = new _InputArray[image.rows];
 	for (int i = 0; i < image.rows; i++)
 	{
 		for (int j = 0; j < image.cols * image.channels(); j += 16)
 		{
+			int k = j;
 			uint8_t* temp = new uint8_t[32];
-			for (int k = j; k < j + 16 && k < image.cols * image.channels(); k++)
+		//#pragma omp parallel for
 			{
-				// cout << k << " ";
-				temp[k - j] = (uint8_t)image.at<uint8_t>(i, k);
-				//result.at<uint8_t>(i, k) = image.at<uint8_t>(i, k);
-				//cout << temp[k - j]<<" ";
+				for (k = j; k < j + 16 && k < image.cols * image.channels(); k++)
+				{
+					// cout << k << " ";
+					temp[k - j] = image.at<uint8_t>(i, k);
+					//result.at<uint8_t>(i, k) = image.at<uint8_t>(i, k);
+					//cout << temp[k - j]<<" ";
+				}
 			}
 			//result.at<uint8_t>(i, j) = image.at<uint8_t>(i, j);
 		//	cout << '\n';
 		//	cout << '\n';
 			AES_ECB_encrypt(&ctx, temp);
-			for (int k = j; k < j + 16 && k < image.cols * image.channels(); k++)
+		//#pragma omp parallel for
 			{
-				result.at<uint8_t>(i, k) = temp[k - j];
-				//	result.at<uint8_t>(i, k) = (uint8_t)(result.at<uint8_t>(i, k));
-				//	cout << result.at<uint8_t>(i, k)<<" ";
+				for (k = j; k < j + 16 && k < image.cols * image.channels(); k++)
+				{
+					result.at<uint8_t>(i, k) = temp[k - j];
+					//	result.at<uint8_t>(i, k) = (uint8_t)(result.at<uint8_t>(i, k));
+					//	cout << result.at<uint8_t>(i, k)<<" ";
+				}
 			}
 
 			//	a[l]= _InputArray(*temp);
@@ -81,8 +98,31 @@ void Encryption(Mat image)
 
 	//cout << result;
 	//imshow("Original", image);
-	imshow("Enc", result);
-	Decryption(result);
+	//imshow("Enc", result);
+	//cout << "Encrypted Image\n:\n"<<result.rowRange(0, 1) << '\n';
+	//result.resize(image.size);
+	imwrite("encrypted2.png", result);
+	Mat ress = imread("encrypted2.png", IMREAD_ANYCOLOR);
+	imshow("Encrypted image",ress);
+	Decryption(ress);
+	//cout << ress.rowRange(0, 1) << '\n';
+
+	//for (int i = 0; i < ress.rows; i++)
+	//{
+	//	for (int j = 0; j < ress.cols; j++)
+	//	{
+	//		if (ress.at<uint8_t>(i, j) != result.at<uint8_t>(i, j))
+	//		{
+	//			cout << "Not working! " << i << " " << j;
+	//			break;
+	//			exit(1);
+	//		}
+	//	}
+	//}
+
+	//Decryption(ress);
+	//Decryption(result);
+	//Decryption(result);
 	//for (auto i : res) cout << (int)i << " ";
 	//cout << "\nDONE!";
 
@@ -135,6 +175,7 @@ void Encryption(Mat image)
 
 void Decryption(Mat image)
 {
+
 	vector<uint8_t> res;
 	AES_ctx ctx;
 	uint8_t* key = new uint8_t[16];
@@ -142,37 +183,46 @@ void Decryption(Mat image)
 	AES_init_ctx(&ctx, key);
 	Mat result(image.rows, image.cols, CV_8UC3);
 	//long long l=0;
-
+	//image.convertTo(image, CV_8UC3);
 	_InputArray* a = new _InputArray[image.rows];
 	for (int i = 0; i < image.rows; i++)
 	{
 		for (int j = 0; j < image.cols * image.channels(); j += 16)
 		{
-			uint8_t* temp = new uint8_t[16];
-			for (int k = j; k < j + 16 && k < image.cols * image.channels(); k++)
+			int k;
+			uint8_t* temp = new uint8_t[32];
+		//#pragma omp parallel for
 			{
-				// cout << k << " ";
-				temp[k - j] = (uint8_t)image.at<uint8_t>(i, k);
-				//cout << temp[k - j]<<" ";
+				for (k = j; k < j + 16 && k < image.cols * image.channels(); k++)
+				{
+					// cout << k << " ";
+					temp[k - j] = (uint8_t)image.at<uint8_t>(i, k);
+					//result.at<uint8_t>(i, k) = image.at<uint8_t>(i, k);
+					//cout << temp[k - j]<<" ";
+				}
 			}
 			//	cout << '\n';
 			//	cout << '\n';
 			AES_ECB_decrypt(&ctx, temp);
-			for (int k = j; k < j + 16 && k < image.cols * image.channels(); k++)
+	//#pragma omp parallel for
 			{
-				result.at<uint8_t>(i, k) = (uint8_t)temp[k - j];
-				//	result.at<uint8_t>(i, k) = (uint8_t)(result.at<uint8_t>(i, k));
-				//	cout << result.at<uint8_t>(i, k)<<" ";
+				for (k = j; k < j + 16 && k < image.cols * image.channels(); k++)
+				{
+					result.at<uint8_t>(i, k) = temp[k - j];
+					//	result.at<uint8_t>(i, k) = (uint8_t)(result.at<uint8_t>(i, k));
+					//	cout << result.at<uint8_t>(i, k)<<" ";
+				}
+				//	a[l]= _InputArray(*temp);
+				//	l++;
+				// res.push_back(*temp);
+				//cout << image.at<uint8_t>(i, j);
 			}
-			//	a[l]= _InputArray(*temp);
-			//	l++;
-			// res.push_back(*temp);
-			//cout << image.at<uint8_t>(i, j);
 		}
 	}
 	//imshow("Original", image);
-	// imshow("Dec", result);
+	imshow("Dec", result);
 	imwrite("decrypted.png", result);
-
+	//Mat result(image);
+	//cout << "Decrypted1\n"<<result.rowRange(0, 1);
 	return;
 }

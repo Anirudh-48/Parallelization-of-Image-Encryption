@@ -143,8 +143,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aes.cpp" />
+    <ClCompile Include="Parallel.cpp" />
     <ClCompile Include="serial.cpp" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="VideoEncryption.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="C:\Users\Anirudh\Desktop\pdc_lab\AES_pdc\image.png" />
