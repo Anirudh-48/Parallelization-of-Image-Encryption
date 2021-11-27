@@ -36,6 +36,9 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 /*****************************************************************************/
 #include <string.h> // CBC mode, for memset
 #include "aes.hpp"
+#include<omp.h>
+#include<iostream>
+using namespace std;
 
 /*****************************************************************************/
 /* Defines:                                                                  */
@@ -156,61 +159,65 @@ static void KeyExpansion(uint8_t *RoundKey, const uint8_t *Key)
     }
 
     // All other round keys are found from the previous round keys.
-    for (i = Nk; i < Nb * (Nr + 1); ++i)
+
     {
+        for (i = Nk; i < Nb * (Nr + 1); ++i)
         {
-            k = (i - 1) * 4;
-            tempa[0] = RoundKey[k + 0];
-            tempa[1] = RoundKey[k + 1];
-            tempa[2] = RoundKey[k + 2];
-            tempa[3] = RoundKey[k + 3];
-        }
-
-        if (i % Nk == 0)
-        {
-            // This function shifts the 4 bytes in a word to the left once.
-            // [a0,a1,a2,a3] becomes [a1,a2,a3,a0]
-
-            // Function RotWord()
             {
-                const uint8_t u8tmp = tempa[0];
-                tempa[0] = tempa[1];
-                tempa[1] = tempa[2];
-                tempa[2] = tempa[3];
-                tempa[3] = u8tmp;
+                k = (i - 1) * 4;
+                tempa[0] = RoundKey[k + 0];
+                tempa[1] = RoundKey[k + 1];
+                tempa[2] = RoundKey[k + 2];
+                tempa[3] = RoundKey[k + 3];
             }
 
-            // SubWord() is a function that takes a four-byte input word and
-            // applies the S-box to each of the four bytes to produce an output word.
-
-            // Function Subword()
+            if (i % Nk == 0)
             {
-                tempa[0] = getSBoxValue(tempa[0]);
-                tempa[1] = getSBoxValue(tempa[1]);
-                tempa[2] = getSBoxValue(tempa[2]);
-                tempa[3] = getSBoxValue(tempa[3]);
+                // This function shifts the 4 bytes in a word to the left once.
+                // [a0,a1,a2,a3] becomes [a1,a2,a3,a0]
+
+                // Function RotWord()
+                {
+                    const uint8_t u8tmp = tempa[0];
+                    tempa[0] = tempa[1];
+                    tempa[1] = tempa[2];
+                    tempa[2] = tempa[3];
+                    tempa[3] = u8tmp;
+                }
+
+                // SubWord() is a function that takes a four-byte input word and
+                // applies the S-box to each of the four bytes to produce an output word.
+
+                // Function Subword()
+                {
+                    tempa[0] = getSBoxValue(tempa[0]);
+                    tempa[1] = getSBoxValue(tempa[1]);
+                    tempa[2] = getSBoxValue(tempa[2]);
+                    tempa[3] = getSBoxValue(tempa[3]);
+                }
+
+                tempa[0] = tempa[0] ^ Rcon[i / Nk];
             }
 
-            tempa[0] = tempa[0] ^ Rcon[i / Nk];
-        }
 #if defined(AES256) && (AES256 == 1)
-        if (i % Nk == 4)
-        {
-            // Function Subword()
+            if (i % Nk == 4)
             {
-                tempa[0] = getSBoxValue(tempa[0]);
-                tempa[1] = getSBoxValue(tempa[1]);
-                tempa[2] = getSBoxValue(tempa[2]);
-                tempa[3] = getSBoxValue(tempa[3]);
+                // Function Subword()
+                {
+                    tempa[0] = getSBoxValue(tempa[0]);
+                    tempa[1] = getSBoxValue(tempa[1]);
+                    tempa[2] = getSBoxValue(tempa[2]);
+                    tempa[3] = getSBoxValue(tempa[3]);
+                }
             }
-        }
 #endif
-        j = i * 4;
-        k = (i - Nk) * 4;
-        RoundKey[j + 0] = RoundKey[k + 0] ^ tempa[0];
-        RoundKey[j + 1] = RoundKey[k + 1] ^ tempa[1];
-        RoundKey[j + 2] = RoundKey[k + 2] ^ tempa[2];
-        RoundKey[j + 3] = RoundKey[k + 3] ^ tempa[3];
+            j = i * 4;
+            k = (i - Nk) * 4;
+            RoundKey[j + 0] = RoundKey[k + 0] ^ tempa[0];
+            RoundKey[j + 1] = RoundKey[k + 1] ^ tempa[1];
+            RoundKey[j + 2] = RoundKey[k + 2] ^ tempa[2];
+            RoundKey[j + 3] = RoundKey[k + 3] ^ tempa[3];
+        }
     }
 }
 
@@ -249,6 +256,7 @@ static void AddRoundKey(uint8_t round, state_t *state, const uint8_t *RoundKey)
 static void SubBytes(state_t *state)
 {
     uint8_t i, j;
+//#pragma omp parallel for
     for (i = 0; i < 4; ++i)
     {
         for (j = 0; j < 4; ++j)
@@ -418,8 +426,9 @@ static void Cipher(state_t *state, const uint8_t *RoundKey)
     // The first Nr-1 rounds are identical.
     // These Nr rounds are executed in the loop below.
     // Last one without MixColumns()
+//#pragma omp parallel for   
     for (round = 1;; ++round)
-    {
+        {
         SubBytes(state);
         ShiftRows(state);
         if (round == Nr)
@@ -429,6 +438,7 @@ static void Cipher(state_t *state, const uint8_t *RoundKey)
         MixColumns(state);
         AddRoundKey(round, state, RoundKey);
     }
+    
     // Add round key to last round
     AddRoundKey(Nr, state, RoundKey);
 }
@@ -445,6 +455,7 @@ static void InvCipher(state_t *state, const uint8_t *RoundKey)
     // The first Nr-1 rounds are identical.
     // These Nr rounds are executed in the loop below.
     // Last one without InvMixColumn()
+//#pragma omp parallel for
     for (round = (Nr - 1);; --round)
     {
         InvShiftRows(state);
