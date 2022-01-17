@@ -51,12 +51,13 @@ Encrypted Image(Iron man:800x800):
 
 Original Video:
 
-![originalVid](https://user-images.githubusercontent.com/62154803/149721458-760eb4a8-bbba-4525-ad88-f6152e35543e.mp4)
+[originalVid](https://user-images.githubusercontent.com/62154803/149721458-760eb4a8-bbba-4525-ad88-f6152e35543e.mp4)
 
 Encrypted Video:
 
-![encryptedVid](https://user-images.githubusercontent.com/62154803/149721465-c36e1547-ef16-4fa7-a972-194bf6347121.mp4)
+[encryptedVid](https://user-images.githubusercontent.com/62154803/149721487-393ed164-380c-433b-9576-f9c05019e3aa.mp4)
 
 Decrypted Video:
 
-![decryptedVid](https://user-images.githubusercontent.com/62154803/149721487-393ed164-380c-433b-9576-f9c05019e3aa.mp4)
+[decryptedVid](https://user-images.githubusercontent.com/62154803/149721465-c36e1547-ef16-4fa7-a972-194bf6347121.mp4)
+
