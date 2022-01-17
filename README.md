@@ -27,4 +27,12 @@ AES_img_decryption(IMG,key):
   9. Result.at(i,k)=temp[k-j]
   10. return Result
  
- 
+SAMPLE OUTPUT:
+Original Image(Iron man: 400x400):
+![ironman400](https://user-images.githubusercontent.com/62154803/149721083-068ff6b6-0679-4450-9073-596314b3c70b.png)
+Encrypted Image(Iron man: 400x400):
+![ironman400enc](https://user-images.githubusercontent.com/62154803/149721089-16b7e755-74c8-4163-9f2b-a34c9e932c81.png)
+Original Image(Iron man:800x800):
+![ironman800](https://user-images.githubusercontent.com/62154803/149721092-09225fcc-e39f-4b9f-b686-b39181c086c3.png)
+Encrypted Image(Iron man:800x800):
+![ironman800enc](https://user-images.githubusercontent.com/62154803/149721095-997a8a3e-6212-480c-833e-8fc7e722cb1c.png)
