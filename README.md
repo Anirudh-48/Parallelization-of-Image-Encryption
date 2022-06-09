@@ -1,12 +1,12 @@
 # Parallelization AES based Encryption
 
-# AIM
+## AIM
 The project was made in order to test the power of parallelization and compare the execution times of the serial and parallel approaches
 
 
 The project mainly uses OpenMP in order to perform parallelization.
 
-# ALGORITHM
+## ALGORITHM
 
 Serial Algorithm for image encryption using AES:
 AES_img_encryption(IMG,key):
@@ -34,8 +34,8 @@ AES_img_decryption(IMG,key):
   9. Result.at(i,k)=temp[k-j]
   10. return Result
  
-# SAMPLE OUTPUT:
-# Image Encryption and Decryption:
+## SAMPLE OUTPUT:
+### Image Encryption and Decryption:
 
 Original Image(Iron man: 400x400):
 
@@ -54,7 +54,7 @@ Encrypted Image(Iron man:800x800):
 
 ![ironman800enc](https://user-images.githubusercontent.com/62154803/149721095-997a8a3e-6212-480c-833e-8fc7e722cb1c.png)
 
-# Video Encryption and Decryption:
+### Video Encryption and Decryption:
 
 Original Video:
 
