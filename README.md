@@ -1,9 +1,7 @@
 # Parallelization AES based Encryption
 
-## Aim
+<h2> Aim </h2>
 The project was made in order to test the power of parallelization and compare the execution times of the serial and parallel approaches
-
-
 The project mainly uses OpenMP in order to perform parallelization.
 
 ## Algorithm
